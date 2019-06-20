@@ -13,7 +13,7 @@ let mydb, cloudant;
 var vendor; // Because the MongoDB and Cloudant use different API commands, we
 // have to check which command should be used based on the database
 // vendor.
-var dbName = 'mydb';
+var dbName = 'manab-bani';
 
 // Separate functions are provided for inserting/retrieving content from
 // MongoDB and Cloudant databases. These functions must be prefixed by a
@@ -188,7 +188,7 @@ if (appEnv.services['compose-for-mongodb'] || appEnv.getService(/.*[Mm][Oo][Nn][
 }
 if (cloudant) {
   //database name
-  dbName = 'ManabBani';
+  dbName = 'manab-bani';
 
   // Create a new "mydb" database.
   cloudant.db.create(dbName, function (err, data) {
