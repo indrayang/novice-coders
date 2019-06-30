@@ -117,7 +117,7 @@ app.post("/api/survivors", function (request, response) {
   var listSurvivors = request.body.survivors ? JSON.parse(request.body.survivors) : [];
   var doc = [];
   if (listSurvivors && listSurvivors.length) {
-    listSurvivors.map(s => { doc.push({ ...{ ...s }, type: 'survivor' }) });
+    listSurvivors.map(s => { return Object.assign({ type: 'survivor' }, s) })
   } else if (info) {
     doc = [{ "name": userName, info: info, type: 'survivor' }];
   } else {
@@ -137,7 +137,7 @@ app.post("/api/users", function (request, response) {
   var listSurvivors = request.body.users ? JSON.parse(request.body.users) : [];
   var doc;
   if (listSurvivors && listSurvivors.length) {
-    doc = listSurvivors.map(s => { return { ...{ ...s }, type: 'user' } })
+    doc = listSurvivors.map(s => { return Object.assign({ type: 'user' }, s) });
   } else if (info) {
     doc = [{ "name": userName, info: info, type: 'user' }];
   } else {
