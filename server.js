@@ -23,6 +23,7 @@ var dbName = 'manab-bani';
 var insertOne = {};
 var insertAll = {};
 var getAll = {};
+var getUsers = {};
 
 insertOne.cloudant = function (doc, response) {
   mydb.insert(doc, function (err, body, header) {
@@ -36,7 +37,7 @@ insertOne.cloudant = function (doc, response) {
   });
 }
 insertAll.cloudant = function (docs, response) {
-  mydb.bulk(docs, function (err, body, header) {
+  mydb.bulk({ docs: docs }, function (err, body, header) {
     if (err) {
       console.log('[mydb.insert] ', err.message);
       response.send("Error");
@@ -49,13 +50,33 @@ insertAll.cloudant = function (docs, response) {
   });
 }
 
-getAll.cloudant = function (response) {
+getAll.cloudant = function (response, id) {
   var names = [];
   mydb.list({ include_docs: true }, function (err, body) {
     if (!err) {
       body.rows.forEach(function (row) {
-        if (row.doc)
-          names.push(row.doc);
+        if (row.doc && row.doc.type === 'survivor') {
+          if (!id || id === row.doc._id) {
+            names.push(row.doc);
+          }
+        }
+      });
+      response.json(names);
+    }
+  });
+  //return names;
+}
+
+getUsers.cloudant = function (response, id = null) {
+  var names = [];
+  mydb.list({ include_docs: true }, function (err, body) {
+    if (!err) {
+      body.rows.forEach(function (row) {
+        if (row.doc && row.doc.type === 'user') {
+          if (!id || id === row.doc._id) {
+            names.push(row.doc);
+          }
+        }
       });
       response.json(names);
     }
@@ -89,17 +110,45 @@ getAll.mongodb = function (response) {
   });
 }
 
-/* Endpoint to add a new survivor to database.*/
+/* Endpoint to add new survivors to database.*/
 app.post("/api/survivors", function (request, response) {
   var userName = request.body.name;
-  var info = JSON.parse(request.body.info);
-  var doc = { "name": userName, info: info };
+  var info = request.body.info ? JSON.parse(request.body.info) : null;
+  var listSurvivors = request.body.survivors ? JSON.parse(request.body.survivors) : [];
+  var doc = [];
+  if (listSurvivors && listSurvivors.length) {
+    listSurvivors.map(s => { doc.push({ ...{ ...s }, type: 'survivor' }) });
+  } else if (info) {
+    doc = [{ "name": userName, info: info, type: 'survivor' }];
+  } else {
+    return null;
+  }
   if (!mydb) {
     console.log("No database.");
     response.send(doc);
     return;
   }
-  insertOne[vendor](doc, response);
+  insertAll[vendor](doc, response);
+});
+
+app.post("/api/users", function (request, response) {
+  var userName = request.body.name;
+  var info = request.body.info ? JSON.parse(request.body.info) : null;
+  var listSurvivors = request.body.users ? JSON.parse(request.body.users) : [];
+  var doc;
+  if (listSurvivors && listSurvivors.length) {
+    doc = listSurvivors.map(s => { return { ...{ ...s }, type: 'user' } })
+  } else if (info) {
+    doc = [{ "name": userName, info: info, type: 'user' }];
+  } else {
+    return null;
+  }
+  if (!mydb) {
+    console.log("No database.");
+    response.send(doc);
+    return;
+  }
+  insertAll[vendor](doc, response);
 });
 
 /**
@@ -114,12 +163,23 @@ app.post("/api/survivors", function (request, response) {
  * @return An array of all the visitor names
  */
 app.get("/api/survivors", function (request, response) {
+  var id = request.query.id;
   var names = [];
   if (!mydb) {
     response.json(names);
     return;
   }
-  getAll[vendor](response);
+  getAll[vendor](response, id);
+});
+
+app.get("/api/users", function (request, response) {
+  var id = request.query.id;
+  var names = [];
+  if (!mydb) {
+    response.json(names);
+    return;
+  }
+  getUsers[vendor](response, id);
 });
 // app.get("/api/visitors", function (request, response) {
 //   var names = [];
