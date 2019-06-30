@@ -54,8 +54,8 @@ getAll.cloudant = function (response) {
   mydb.list({ include_docs: true }, function (err, body) {
     if (!err) {
       body.rows.forEach(function (row) {
-        if (row.doc.name)
-          names.push(row.doc.name);
+        if (row.doc)
+          names.push(row.doc);
       });
       response.json(names);
     }
@@ -92,7 +92,7 @@ getAll.mongodb = function (response) {
 /* Endpoint to add a new survivor to database.*/
 app.post("/api/survivors", function (request, response) {
   var userName = request.body.name;
-  var info = request.body.info;
+  var info = JSON.parse(request.body.info);
   var doc = { "name": userName, info: info };
   if (!mydb) {
     console.log("No database.");
