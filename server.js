@@ -92,7 +92,8 @@ getAll.mongodb = function (response) {
 /* Endpoint to add a new survivor to database.*/
 app.post("/api/survivors", function (request, response) {
   var userName = request.body.name;
-  var doc = { "name": userName };
+  var info = request.body.info;
+  var doc = { "name": userName, info: info };
   if (!mydb) {
     console.log("No database.");
     response.send(doc);
